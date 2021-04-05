@@ -12,6 +12,8 @@ app.use(express.static(join(__dirname, 'public')))
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
+app.use(require('compression')())
+
 app.use(passport.initialize())
 app.use(passport.session())
 

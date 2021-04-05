@@ -22,4 +22,19 @@ router.post('/posts', passport.authenticate('jwt'), (req, res) => {
     .catch(err => console.log(err))
 })
 
+router.post('/posts/bulk', passport.authenticate('jwt'), (req, res) => {
+  Post.create(req.body.posts.map(post => ({
+    ...post,
+    author: req.user._id
+  })))
+    .then(posts => {
+      User.findById(req.user._id)
+        .then(user => {
+          const newPosts = [...user.posts, ...posts.map(post => post._id)]
+          User.findByIdAndUpdate(req.user._id, { posts: newPosts })
+            .then(() => res.sendStatus(200))
+        })
+    })
+})
+
 module.exports = router

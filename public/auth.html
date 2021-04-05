@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="./manifest.json">
   <title>Document</title>
 </head>
 
@@ -51,6 +52,13 @@
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script>
 
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log(reg))
+        })
+      }
+
     document.getElementById('register').addEventListener('click', event => {
       event.preventDefault()
       axios.post('/api/users/register', {
@@ -87,18 +95,6 @@
         })
         .catch(err => console.error(err))
     })
-
-    if (localStorage.getItem('user')) {
-      axios.get('/api/users/authorize', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('user')}`
-        }
-      })
-        .then(() => {
-          window.location = '/index.html'
-        })
-        .catch(err => console.error(err))
-    }
 
   </script>
 </body>

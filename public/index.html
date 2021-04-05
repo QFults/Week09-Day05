@@ -4,13 +4,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="./manifest.json">
   <title>Document</title>
 </head>
 
 <body>
   <nav>
     <a href="/index.html">Home Page</a>
-    <button id="signOut">Sign Out</button>
+    <button id="signOut">Sign Out <img src="./images/delivery.png" alt="delivery"></button>
   </nav>
   <h2>Your Info</h2>
   <div id="user"></div>
@@ -33,7 +34,15 @@
   <div id="posts"></div>
 
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="./db.js"></script>
   <script>
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log(reg))
+      })
+    }
 
     document.getElementById('signOut').addEventListener('click', event => {
       localStorage.removeItem('user')
@@ -41,30 +50,36 @@
     })
 
     document.getElementById('createPost').addEventListener('click', event => {
-        event.preventDefault()
-        axios.post('/api/posts', {
-          title: document.getElementById('title').value,
-          body: document.getElementById('body').value
-        }, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('user')}`
-          }
-        })
-          .then(({ data }) => {
-            alert('Post successfully created!')
+      event.preventDefault()
 
-            let postElem = document.createElement('div')
-            postElem.innerHTML = `
+      const post = {
+        title: document.getElementById('title').value,
+        body: document.getElementById('body').value
+      }
+
+      axios.post('/api/posts', post, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('user')}`
+        }
+      })
+        .then(({ data }) => {
+          alert('Post successfully created!')
+
+          let postElem = document.createElement('div')
+          postElem.innerHTML = `
                 <h3>${data.title}</h3>
                 <p>${data.body}</p>
                 <hr>
               `
-            document.getElementById('posts').prepend(postElem)
-            document.getElementById('title').value = ''
-            document.getElementById('body').value = ''
-          })
-          .catch(err => console.error(err))
-      })
+          document.getElementById('posts').prepend(postElem)
+          document.getElementById('title').value = ''
+          document.getElementById('body').value = ''
+        })
+        .catch(err => {
+          alert('Network Error, but data saved.')
+          savePost(post)
+        })
+    })
 
 
     if (localStorage.getItem('user')) {
@@ -90,10 +105,10 @@
           })
         })
         .catch(err => {
-          window.location = '/auth.html'
+          // window.location = '/auth.html'
         })
     } else {
-      window.location = '/auth.html'
+      // window.location = '/auth.html'
     }
   </script>
 </body>
