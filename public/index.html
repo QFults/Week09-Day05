@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <nav>
+    <a href="/index.html">Home Page</a>
+    <button id="signOut">Sign Out</button>
+  </nav>
+  <h2>Your Info</h2>
+  <div id="user"></div>
+  <hr>
+  <form>
+    <p>
+      <label for="title">title</label>
+      <input type="text" name="title" id="title">
+    </p>
+    <p>
+      <label for="body">body</label>
+      <textarea name="body" id="body" cols="30" rows="10"></textarea>
+    </p>
+    <p>
+      <button id="createPost">Create Post</button>
+    </p>
+  </form>
+  <hr>
+  <h2>Your Posts</h2>
+  <div id="posts"></div>
+
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+
+    document.getElementById('signOut').addEventListener('click', event => {
+      localStorage.removeItem('user')
+      window.location = '/auth.html'
+    })
+
+    document.getElementById('createPost').addEventListener('click', event => {
+        event.preventDefault()
+        axios.post('/api/posts', {
+          title: document.getElementById('title').value,
+          body: document.getElementById('body').value
+        }, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('user')}`
+          }
+        })
+          .then(({ data }) => {
+            alert('Post successfully created!')
+
+            let postElem = document.createElement('div')
+            postElem.innerHTML = `
+                <h3>${data.title}</h3>
+                <p>${data.body}</p>
+                <hr>
+              `
+            document.getElementById('posts').prepend(postElem)
+            document.getElementById('title').value = ''
+            document.getElementById('body').value = ''
+          })
+          .catch(err => console.error(err))
+      })
+
+
+    if (localStorage.getItem('user')) {
+      axios.get('/api/posts', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('user')}`
+        }
+      })
+        .then(({ data }) => {
+          document.getElementById('user').innerHTML = `
+                  <h4>Name: ${data.name}</h4>
+                  <h4>Username: ${data.username}</h4>
+                  <h4>Email: ${data.email}</h4>
+                `
+          data.posts.forEach(post => {
+            let postElem = document.createElement('div')
+            postElem.innerHTML = `
+                <h3>${post.title}</h3>
+                <p>${post.body}</p>
+                <hr>
+              `
+            document.getElementById('posts').append(postElem)
+          })
+        })
+        .catch(err => {
+          window.location = '/auth.html'
+        })
+    } else {
+      window.location = '/auth.html'
+    }
+  </script>
+</body>
+
+</html>
